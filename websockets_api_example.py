@@ -6,10 +6,12 @@ import uuid
 import json
 import urllib.request
 import urllib.parse
+
 import random
 
-server_address = "127.0.0.1:8188"
-client_id = str(uuid.uuid4())
+from PIL import Image
+import io
+import os
 
 def queue_prompt(prompt):
     p = {"prompt": prompt, "client_id": client_id}
@@ -54,51 +56,59 @@ def get_images(ws, prompt):
 
     return output_images
 
+def load_workflow(file_path):
+    """Load workflow from JSON and return as prompt input"""
+
+    with open(file_path, 'r') as file:
+        json_string = file.read()
+
+    return json_string
+
+def run_workflow(prompt_text):
+    """Run workflow and return images object"""
+  
+    prompt = json.loads(prompt_text)
+
+    # Changes the Seed of the KSampler node to avoid stalling
+    prompt["3"]["inputs"]["seed"] = random.randint(1,999)
+
+    ws = websocket.WebSocket()
+    ws.connect("ws://{}/ws?clientId={}".format(server_address, client_id))
+    images = get_images(ws, prompt)
+
+    return images
+
+def save_output(images):
+    """Saves output image in specefied directory"""
+    
+    save_directory = './images/'  # Change this to your desired directory
+
+    # Ensure the directory exists
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
+
+    for node_id in images:
+        for idx, image_data in enumerate(images[node_id]):
+            # Create a file path for each image
+            file_path = os.path.join(save_directory, f'image_{node_id}_{idx}.png')  # You can change the file extension if needed
+            
+            # Open the image from byte data
+            image = Image.open(io.BytesIO(image_data))
+            
+            # Save the image to the specified file path
+            image.save(file_path)
+            print(f'Saved image {file_path}')
 
 
-# # Specify the path to your .json file
-file_path = './workflows/test_workflow.json'
+def run_application(file_path):
+    """Run worflow, and save output image to file path"""
+    prompt_text = load_workflow(file_path)
+    images = run_workflow(prompt_text)
+    save_output(images)
 
-# # Open the file and read its content
-with open(file_path, 'r') as file:
-    json_string = file.read()
+if __name__ == '__main__':
+    server_address = "127.0.0.1:8188"
+    client_id = str(uuid.uuid4())
+    file_path = './workflows/test_workflow.json'
 
-prompt_text = json_string
-
-
-prompt = json.loads(prompt_text)
-#set the text prompt for our positive CLIPTextEncode
-# prompt["6"]["inputs"]["text"] = "masterpiece best quality man"
-
-#set the seed for our KSampler node
-prompt["3"]["inputs"]["seed"] = random.randint(1,999)
-
-ws = websocket.WebSocket()
-ws.connect("ws://{}/ws?clientId={}".format(server_address, client_id))
-images = get_images(ws, prompt)
-
-#Commented out code to display the output images:
-from PIL import Image
-import io
-
-# Define a directory to save images
-save_directory = './images/'  # Change this to your desired directory
-
-# Ensure the directory exists
-import os
-if not os.path.exists(save_directory):
-    os.makedirs(save_directory)
-
-for node_id in images:
-    for idx, image_data in enumerate(images[node_id]):
-        # Create a file path for each image
-        file_path = os.path.join(save_directory, f'image_{node_id}_{idx}.png')  # You can change the file extension if needed
-        
-        # Open the image from byte data
-        image = Image.open(io.BytesIO(image_data))
-        
-        # Save the image to the specified file path
-        image.save(file_path)
-        print(f'Saved image {file_path}')
-
-
+    run_application(file_path)
