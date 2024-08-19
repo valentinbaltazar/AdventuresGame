@@ -13,6 +13,10 @@ from PIL import Image
 import io
 import os
 
+# Set server address (local host) and client id
+server_address = "127.0.0.1:8188"
+client_id = str(uuid.uuid4())
+
 def queue_prompt(prompt):
     p = {"prompt": prompt, "client_id": client_id}
     data = json.dumps(p).encode('utf-8')
@@ -64,13 +68,16 @@ def load_workflow(file_path):
 
     return json_string
 
-def run_workflow(prompt_text):
+def run_workflow(prompt_text, user_prompt):
     """Run workflow and return images object"""
-  
+
     prompt = json.loads(prompt_text)
 
     # Changes the Seed of the KSampler node to avoid stalling
     prompt["3"]["inputs"]["seed"] = random.randint(1,999)
+    
+    # Change prompt to that of the user
+    prompt["6"]["inputs"]["text"] = user_prompt
 
     ws = websocket.WebSocket()
     ws.connect("ws://{}/ws?clientId={}".format(server_address, client_id))
@@ -100,15 +107,14 @@ def save_output(images):
             print(f'Saved image {file_path}')
 
 
-def run_application(file_path):
+def run_application(file_path, user_prompt):
     """Run worflow, and save output image to file path"""
     prompt_text = load_workflow(file_path)
-    images = run_workflow(prompt_text)
+    images = run_workflow(prompt_text, user_prompt)
     save_output(images)
 
 if __name__ == '__main__':
-    server_address = "127.0.0.1:8188"
-    client_id = str(uuid.uuid4())
     file_path = './workflows/test_workflow.json'
 
-    run_application(file_path)
+    user_prompt = "beautiful scenery nature glass bottle landscape, purple galaxy bottle"
+    run_application(file_path, user_prompt)
