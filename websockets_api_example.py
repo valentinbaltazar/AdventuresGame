@@ -107,7 +107,7 @@ def save_output(images):
             print(f'Saved image {file_path}')
 
 
-def run_application(file_path, user_prompt):
+def run_text_to_image(file_path, user_prompt):
     """Run worflow, and save output image to file path"""
     prompt_text = load_workflow(file_path)
     images = run_workflow(prompt_text, user_prompt)
@@ -117,4 +117,4 @@ if __name__ == '__main__':
     file_path = './workflows/test_workflow.json'
 
     user_prompt = "beautiful scenery nature glass bottle landscape, purple galaxy bottle"
-    run_application(file_path, user_prompt)
+    run_text_to_image(file_path, user_prompt)

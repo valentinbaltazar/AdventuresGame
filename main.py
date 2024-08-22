@@ -1,32 +1,48 @@
-from websockets_api_example import run_application
+from websockets_api_example import run_text_to_image
+from stories.DnD.the_wealthy_merhcant import character1
+from check_character import GetCharInfo
+
 import uuid
 
 workflows = {'animated':'./workflows/test_workflow.json'}
 
 
 def play_game():
-    story = StoryProgress()
-    hero_player = Hero(hair='(long dark blue hair)', body='', face='', weapon='longsword', armor='gold armor')
-    pipeline = LoadPipeline('./workflows') # Load the pipeline for animated images
-
     print(5*'=' + "Adventure v0.0.1" + 5*'=')
-    print("Welcome to the adventure game. In this adventure you will set the scene and make a hero!")
+    print("Welcome to the DnD Adventrues Game.")
+    playing = input("Whould you like to play? (y/n): ")
 
-    # Testing workflow with user inputs and class
-    user_prompt = input("What setting is you hero found? (ex: in the arid desert): ")
+    while playing == 'y':
+        char_info = GetCharInfo(character1)
+        char_name, char_class = char_info.get_class_info()
 
-    # Modify hero based on user input
-    hero_player.hair = input("Describe your heros hair: (ex: long dark blue hair): ")
-    hero_player.weapon = input("Describe your heros weapon: (ex: longsword): ")
-    hero_player.armor = input("Describe your heros armor: (ex: gold armor): ")
+        char_name_list = [char_name, 'LoserNPC']
+        char_class_list = [char_class, 'LoserNPC']
 
-    hero_desc = hero_player.hero_prompt()
-    file_path = pipeline.simple_match('animated')
+        # Load the main character chosen by user
+        main_char = None
+        for idx in range(len(char_name_list)):
+            select_char = input("Would you like to play as: {char_name}? (y/n)".format(char_name=char_name))
+            if select_char == 'y':
+                main_char = char_class_list[idx]
+                break
+        
+        print("Great, you have chosen the mighty {name}!!".format(name=main_char.name))
 
-    # Prompt will merge user input and Hero object details
-    prompt = "{user_prompt} landscape, {hero_desc}".format(user_prompt=user_prompt, hero_desc=hero_desc)
-    print(prompt)
-    run_application(file_path, prompt)
+        line_break(10) # prints line break
+
+        print("Here is how your chracter looks:")
+
+        # For now we load prompt with full str and see what happens
+        prompt = main_char.__str__()
+
+        # print(prompt)
+        run_text_to_image(workflows['animated'], prompt)
+
+        break
+
+def line_break(n):
+    print(n*'+~~===~~+')
 
 class StoryProgress:
     """Tracks the story and player progress
