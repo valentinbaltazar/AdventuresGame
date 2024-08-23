@@ -2,9 +2,6 @@
 
 from stories.DnD.the_wealthy_merhcant import narration
 
-
-
-
 class GetNarrationInfo:
     """Returns the Narration object, and related information"""
     def __init__(self, narration_module):
@@ -29,17 +26,20 @@ class GetNarrationInfo:
             print("End of node.")
         elif isinstance(tree, dict):
             for key, value in tree.items():
-                print(key)
-                self._traverse_tree(value, parent_key=key)
+                full_key = f"{parent_key}.{key}" if parent_key else key
+                print(full_key)
+                self._traverse_tree(value, parent_key=full_key)
         elif isinstance(tree, list):
-            for item in tree:
+            for idx, item in enumerate(tree):
+                full_key = f"{parent_key}[{idx}]"
                 try:
-                    print(parent_key)
+                    print(full_key)
                     print(item.keys()) # Assumes list has dict items
-                    self._traverse_tree(item)
+                    self._traverse_tree(item, parent_key=full_key)
                 except:
                     # Some list end with string nodes
-                    print("End of node.")
+                    self._traverse_tree(item, parent_key=full_key)
+
 
 
 
