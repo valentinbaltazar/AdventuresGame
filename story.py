@@ -2,6 +2,9 @@
 
 from stories.DnD.the_wealthy_merhcant import narration
 import random
+from websockets_api_example import run_text_to_image
+workflows = {'animated':'./workflows/test_workflow.json'}
+
 
 class Encounter:
     """Encounter class with title, purpose, narration, and choices"""
@@ -20,6 +23,10 @@ class Encounter:
         """Moves down the encounter tree"""
         print(self.title)
         print(self.narration)
+
+        # Use narration as a new scene
+        prompt = "Paint this as a scene: {scene}".format(scene=self.narration)
+        run_text_to_image(workflows['animated'], prompt)
 
         if isinstance(self.choices[0], dict):
             for idx, choice in enumerate(self.choices):
@@ -50,7 +57,7 @@ class Encounter:
             user_enc_idx = int(user_idx)
 
             luck = random.randint(0,20)
-            if luck > 5:
+            if luck > 10:
                 print("Success!!")
                 self.opt_state[user_enc_idx] = "Pass"
                 return enum[user_enc_idx]

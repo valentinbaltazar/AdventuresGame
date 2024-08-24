@@ -2,6 +2,10 @@ from websockets_api_example import run_text_to_image
 from stories.DnD.the_wealthy_merhcant import character1
 from check_character import GetCharInfo
 
+from story import Story
+from stories.DnD.the_wealthy_merhcant import narration
+
+import random
 import uuid
 
 workflows = {'animated':'./workflows/test_workflow.json'}
@@ -38,6 +42,27 @@ def play_game():
 
         # print(prompt)
         run_text_to_image(workflows['animated'], prompt)
+
+        # Start story and progress it
+        story = Story(narration) # Start a new story
+        intro = story.get_section('introduction')
+        print(intro)
+        print("Let the adventure begin...")
+
+        # Set the scene for the intro
+        intro_prompt = "Paint this as a scene: {scene}".format(scene=intro)
+        run_text_to_image(workflows['animated'], intro_prompt)
+
+
+        keep_playing = 'y'
+        while keep_playing == 'y':
+            story.get_encounters()
+            # print("Play another encounter? (y/n): ")
+            user_res = input("Play another encounter? (y/n): ")
+            keep_playing = user_res
+
+        outro = story.get_section('epilogue')
+        print(outro)
 
         break
 

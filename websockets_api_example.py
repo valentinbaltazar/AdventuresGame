@@ -101,6 +101,7 @@ def save_output(images):
             
             # Open the image from byte data
             image = Image.open(io.BytesIO(image_data))
+            image.show()
             
             # Save the image to the specified file path
             image.save(file_path)
@@ -112,6 +113,7 @@ def run_text_to_image(file_path, user_prompt):
     prompt_text = load_workflow(file_path)
     images = run_workflow(prompt_text, user_prompt)
     save_output(images)
+
 
 if __name__ == '__main__':
     file_path = './workflows/test_workflow.json'
